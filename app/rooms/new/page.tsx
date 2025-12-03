@@ -17,17 +17,15 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { LoadingSwap } from '@/components/ui/loading-swap'
+import { createRoom } from '@/services/supabase/actions/rooms'
+import { createRoomSchema } from '@/services/supabase/schemas/rooms'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import z from 'zod'
 
-const formSchema = z.object({
-  name: z.string().min(3).max(50).trim(),
-  isPublic: z.boolean(),
-})
-
-type FormData = z.infer<typeof formSchema>
+type FormData = z.infer<typeof createRoomSchema>
 
 const NewRoomPage = () => {
   const form = useForm<FormData>({
@@ -35,11 +33,14 @@ const NewRoomPage = () => {
       name: '',
       isPublic: false,
     },
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createRoomSchema),
   })
 
   async function handleSubmit(data: FormData) {
-    console.log(data)
+    const { error, message } = await createRoom(data)
+    if (error) {
+      toast.error(message || 'An unexpected error occurred')
+    }
   }
 
   return (
@@ -102,7 +103,7 @@ const NewRoomPage = () => {
               <Field orientation="horizontal" className="w-full">
                 <Button
                   type="submit"
-                  className="flex-grow"
+                  className="grow"
                   disabled={form.formState.isSubmitting}
                 >
                   <LoadingSwap isLoading={form.formState.isSubmitting}>
